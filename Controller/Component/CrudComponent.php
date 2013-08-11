@@ -97,6 +97,8 @@ class CrudComponent extends Component {
  * that will be bound automatically in Crud. By default the related model event
  * are bound. Events will always assume to be in the Controller/Event folder
  *
+ * `eventLogging` boolean to determine whether the class should log triggered events
+ *
  * @var array
  */
 	public $settings = array(
@@ -122,7 +124,8 @@ class CrudComponent extends Component {
 				'class' => 'MethodNotAllowedException',
 				'text' => 'Method not allowed. This action permits only {methods}'
 			)
-		)
+		),
+		'eventLogging' => false
 	);
 
 /**
@@ -464,10 +467,9 @@ class CrudComponent extends Component {
 		$eventName = $this->settings['eventPrefix'] . '.' . $eventName;
 		$subject = $data instanceof CrudSubject ? $data : $this->getSubject($data);
 
-		$this->_eventLog[] = array(
-			$eventName,
-			$data
-		);
+		if (!empty($this->settings['eventLogging'])) {
+			$this->logEvent($eventName, $data);
+		}
 
 		$event = new CakeEvent($eventName, $subject);
 		$this->_eventManager->dispatch($event);
@@ -484,6 +486,20 @@ class CrudComponent extends Component {
 		}
 
 		return $subject;
+	}
+
+/**
+ * Add a log entry for the event event
+ *
+ * @param string $eventName
+ * @param array $data
+ * @return void
+ */
+	public function logEvent($eventName, $data = array()) {
+		$this->_eventLog[] = array(
+			$eventName,
+			$data
+		);
 	}
 
 /**
@@ -814,5 +830,4 @@ class CrudComponent extends Component {
 
 		return $merged;
 	}
-
 }
